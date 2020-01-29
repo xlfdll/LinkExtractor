@@ -37,6 +37,9 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>LinkExtractor.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -65,16 +68,44 @@
     <Compile Include="..\BuildInfo.cs">
       <Link>BuildInfo.cs</Link>
     </Compile>
+    <Compile Include="..\XDLibrary\Xlfdll.Core\Infrastructure\Collections\EnumerableExtensions.cs">
+      <Link>Base\Core\EnumerableExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\XDLibrary\Xlfdll.Core\Network\WebOperations.cs">
+      <Link>Base\Core\WebOperations.cs</Link>
+    </Compile>
+    <Compile Include="..\XDLibrary\Xlfdll.Windows.Presentation\Components\ClipboardMonitor.cs">
+      <Link>Base\Windows\Presentation\ClipboardMonitor.cs</Link>
+    </Compile>
+    <Compile Include="..\XDLibrary\Xlfdll.Windows\API\DataExchange.cs">
+      <Link>Base\Windows\API\DataExchange.cs</Link>
+    </Compile>
+    <Compile Include="..\XDLibrary\Xlfdll.Windows\API\WindowMessages.cs">
+      <Link>Base\Windows\API\WindowMessages.cs</Link>
+    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Facilities\LinkExtractionWorker.cs" />
+    <Compile Include="Facilities\Handlers\DmhyShareHandler.cs" />
+    <Compile Include="Facilities\Handlers\IHandler.cs" />
+    <Compile Include="Facilities\HandlerDispatcher.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Resources\Styles.App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Resources\Styles.StatusBar.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\LinkItem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -97,6 +128,10 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="LinkExtractor.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
