@@ -6,6 +6,10 @@ A utility that can extract specific links from web pages
        alt="Link Extractor">
 </p>
 
+Currently support link extraction from the following sources:
+
+* share.dmhy.org (topic pages, prefixed by https://share.dmhy.org/topics/view/*)
+
 ## System Requirements
 * .NET Framework 4.8
 
