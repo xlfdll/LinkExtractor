@@ -92,6 +92,7 @@
         </Grid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Copy _Selected Extracted Links" Click="CopySelectedExtractedLinksButton_Click"/>
             <Button Content="Copy _All Extracted Links" Click="CopyAllExtractedLinksButton_Click"/>
             <Button Content="Clea_r" Click="ClearButton_Click"/>
         </StackPanel>

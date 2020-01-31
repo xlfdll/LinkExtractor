@@ -40,7 +40,14 @@ namespace LinkExtractor
 
                 if (clipboardText != lastClipboardText)
                 {
-                    await ParseClipboardLink(clipboardText);
+                    String[] originalLinks = clipboardText.Split
+                        (new String[] { Environment.NewLine },
+                        StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (String originalLink in originalLinks)
+                    {
+                        await ParseClipboardLink(originalLink);
+                    }
 
                     MainStatusBarItem.Content = "Done";
 
@@ -77,6 +84,21 @@ namespace LinkExtractor
             }
         }
 
+        private void CopySelectedExtractedLinksButton_Click(object sender, RoutedEventArgs e)
+        {
+            isCopyingLinks = true;
+
+            String links = String.Join(Environment.NewLine, LinkItemListView.SelectedItems.Cast<LinkItem>()
+                .Select(item => item.ExtractedLink)
+                .ToArray());
+
+            Clipboard.SetText(links);
+
+            isCopyingLinks = false;
+
+            MainStatusBarItem.Content = $"Selected extracted links copied";
+        }
+
         private void CopyAllExtractedLinksButton_Click(object sender, RoutedEventArgs e)
         {
             isCopyingLinks = true;
@@ -95,6 +117,8 @@ namespace LinkExtractor
         private void ClearButton_Click(object sender, RoutedEventArgs e)
         {
             LinkItemListView.Items.Clear();
+
+            lastClipboardText = String.Empty;
 
             MainStatusBarItem.Content = $"All extracted links cleared";
         }
