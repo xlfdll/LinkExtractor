@@ -23,6 +23,8 @@ namespace LinkExtractor
 
             this.ClipboardMonitor = new ClipboardMonitor(this);
             this.ProcessingLinkQueue = new ConcurrentQueue<String>();
+
+            CountStatusBarItem.Content = String.Format(CountStatusBarItem.Tag.ToString(), this.ProcessingLinkQueue.Count);
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -141,17 +143,28 @@ namespace LinkExtractor
                         MainStatusBarItem.Content = $"Parsing {link}...";
                     });
 
-                    String content = WebOperations.GetContentAsStringAsync(link).Result;
                     IHandler handler = HandlerDispatcher.Current.GetLinkHandler(link);
-                    String extractedLink = handler.GetEmbedLinks(content);
+
+                    if (handler != null)
+                    {
+                        try
+                        {
+                            String content = WebOperations.GetContentAsStringAsync(link).Result;
+                            String extractedLink = handler.GetEmbedLinks(content);
+
+                            Dispatcher.Invoke(() =>
+                            {
+                                if (!String.IsNullOrEmpty(extractedLink))
+                                {
+                                    LinkItemListView.Items.Add(new LinkItem(extractedLink, link, handler));
+                                }
+                            });
+                        }
+                        catch { }
+                    }
 
                     Dispatcher.Invoke(() =>
                     {
-                        if (!String.IsNullOrEmpty(extractedLink))
-                        {
-                            LinkItemListView.Items.Add(new LinkItem(extractedLink, link, handler));
-                        }
-
                         if (this.ProcessingLinkQueue.Count == 0)
                         {
                             MainStatusBarItem.Content = "Done";
