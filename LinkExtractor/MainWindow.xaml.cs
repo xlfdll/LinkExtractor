@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -20,11 +22,14 @@ namespace LinkExtractor
             InitializeComponent();
 
             this.ClipboardMonitor = new ClipboardMonitor(this);
+            this.ProcessingLinkQueue = new ConcurrentQueue<String>();
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             this.ClipboardMonitor.ClipboardContentChanged += ClipboardMonitor_ClipboardContentChanged;
+
+            Task.Run(ProcessLinkQueue);
         }
 
         private void MainWindow_Unloaded(object sender, RoutedEventArgs e)
@@ -32,7 +37,7 @@ namespace LinkExtractor
             this.ClipboardMonitor.Dispose();
         }
 
-        private async void ClipboardMonitor_ClipboardContentChanged(object sender, EventArgs e)
+        private void ClipboardMonitor_ClipboardContentChanged(object sender, EventArgs e)
         {
             if (!isCopyingLinks && Clipboard.ContainsText())
             {
@@ -46,10 +51,10 @@ namespace LinkExtractor
 
                     foreach (String originalLink in originalLinks)
                     {
-                        await ParseClipboardLink(originalLink);
-                    }
+                        this.ProcessingLinkQueue.Enqueue(originalLink);
 
-                    MainStatusBarItem.Content = "Done";
+                        CountStatusBarItem.Content = String.Format(CountStatusBarItem.Tag.ToString(), this.ProcessingLinkQueue.Count);
+                    }
 
                     lastClipboardText = clipboardText;
                 }
@@ -123,27 +128,44 @@ namespace LinkExtractor
             MainStatusBarItem.Content = $"All extracted links cleared";
         }
 
-        private async Task ParseClipboardLink(string clipboardText)
+        private void ProcessLinkQueue()
         {
-            MainStatusBarItem.Content = $"Parsing {clipboardText}...";
-
-            try
+            while (true)
             {
-                String content = await WebOperations.GetContentAsStringAsync(clipboardText);
-                IHandler handler = HandlerDispatcher.Current.GetLinkHandler(clipboardText);
-                String extractedLink = handler.GetEmbedLinks(content);
+                while (this.ProcessingLinkQueue.TryDequeue(out String link))
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        ProgressBarStatusBarItem.Visibility = Visibility.Visible;
+                        CountStatusBarItem.Content = String.Format(CountStatusBarItem.Tag.ToString(), this.ProcessingLinkQueue.Count);
+                        MainStatusBarItem.Content = $"Parsing {link}...";
+                    });
 
-                LinkItemListView.Items.Add(new LinkItem(extractedLink, clipboardText, handler));
+                    String content = WebOperations.GetContentAsStringAsync(link).Result;
+                    IHandler handler = HandlerDispatcher.Current.GetLinkHandler(link);
+                    String extractedLink = handler.GetEmbedLinks(content);
 
-                MainStatusBarItem.Content = "Done";
-            }
-            catch (Exception ex)
-            {
-                MainStatusBarItem.Content = $"ERROR: {ex.Message}";
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (!String.IsNullOrEmpty(extractedLink))
+                        {
+                            LinkItemListView.Items.Add(new LinkItem(extractedLink, link, handler));
+                        }
+
+                        if (this.ProcessingLinkQueue.Count == 0)
+                        {
+                            MainStatusBarItem.Content = "Done";
+                            ProgressBarStatusBarItem.Visibility = Visibility.Collapsed;
+                        }
+                    });
+                }
+
+                Thread.Sleep(100);
             }
         }
 
         private ClipboardMonitor ClipboardMonitor { get; }
+        private ConcurrentQueue<String> ProcessingLinkQueue { get; }
 
         private String lastClipboardText = String.Empty;
         private Boolean isCopyingLinks = false;

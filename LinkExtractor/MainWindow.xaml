@@ -98,7 +98,28 @@
         </StackPanel>
 
         <StatusBar Grid.Row="3">
-            <StatusBarItem x:Name="MainStatusBarItem" Content="Ready"/>
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                    </Grid>
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
+
+            <StatusBarItem x:Name="CountStatusBarItem" Grid.Column="0" Tag="[Remaining {0}]"/>
+            <Separator Grid.Column="1"/>
+            <StatusBarItem x:Name="MainStatusBarItem" Grid.Column="2" Content="Ready"/>
+            <StatusBarItem Grid.Column="3" x:Name="ProgressBarStatusBarItem" Width="100" Visibility="Collapsed">
+                <Grid>
+                    <ProgressBar IsIndeterminate="True" Height="20"
+                                 Width="{Binding Path=Width, RelativeSource={RelativeSource AncestorType=StatusBarItem, AncestorLevel=1}}"/>
+                </Grid>
+            </StatusBarItem>
         </StatusBar>
     </Grid>
 </Window>
